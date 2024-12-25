@@ -1,0 +1,119 @@
+/* src/styles/App.css */
+
+/* Подключаем шрифт TT Octosquares */
+@font-face {
+  font-family: 'TT Octosquares';
+  src: url('../assets/fonts/TT-Octosquares-Regular.woff2') format('woff2'),
+       url('../assets/fonts/TT-Octosquares-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Сброс */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Тело документа.
+   Центрируем .app-container (чтобы она оказывалась по центру),
+   и задаём глобальный фон на всё окно */
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+
+  /* Выставляем flex-контейнер, чтобы центрировать app-container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: 'TT Octosquares', sans-serif;
+  color: #fff;
+
+  /* Глобальный фон 4K */
+  background: url('../assets/global_background.png') no-repeat center center;
+  background-size: cover;
+}
+
+/* Основной контейнер приложения, 1920×1080 */
+.app-container {
+  width: 1920px;
+  height: 1080px;
+  transform-origin: center center;
+
+  /* Локальный фон приложения */
+  background: url('../assets/background.png') no-repeat center center;
+  background-size: cover;
+}
+
+/* Масштабируем .app-container, 
+   но только если окно МЕНЬШЕ 1920×1080 */
+@media (max-width: 1920px), (max-height: 1080px) {
+  .app-container {
+    transform: scale(var(--scale-factor));
+  }
+}
+
+:root {
+  --scale-factor: 1;
+}
+
+/* Кнопки ответов, класс answer-button,
+   хотя мы теперь используем inline-стили, 
+   этот класс может остаться как общий */
+.answer-button {
+  position: absolute;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 120px;
+  text-align: center;
+  color: #fff;
+  transition: background-image 0.3s ease;
+}
+
+/* Робот */
+.robot {
+  position: absolute;
+  width: 1000px;
+  height: 1080px;
+  overflow: hidden;
+  background: transparent;
+  z-index: 1;
+}
+
+.robot video {
+  object-fit: cover;
+}
+
+/* answer-info */
+.answer-info {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.answer-info img,
+.answer-info video {
+  max-width: 80%;
+  max-height: 80%;
+}
+
+/* Результирующий экран */
+.result-container {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
