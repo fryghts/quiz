@@ -71,16 +71,7 @@ function Robot({ reaction = 'none' }) {
     const prev = prevReactionRef.current;
     prevReactionRef.current = reaction;
 
-    // Скрываем старую анимацию
-    if (prev && prev !== 'none') {
-      const oldKey = videoKeyByReaction[prev];
-      const oldVid = refs[oldKey]?.current;
-      if (oldVid) {
-        oldVid.pause();
-        oldVid.currentTime = 0;
-        oldVid.style.display = 'none';
-      }
-    }
+
 
     if (currentKey === 'none') {
       // вообще ничего не показываем
@@ -110,6 +101,16 @@ function Robot({ reaction = 'none' }) {
         newVid.play().catch(()=>{});
       }
     }
+	    // Скрываем старую анимацию
+    if (prev && prev !== 'none') {
+      const oldKey = videoKeyByReaction[prev];
+      const oldVid = refs[oldKey]?.current;
+      if (oldVid) {
+        oldVid.pause();
+        oldVid.currentTime = 0;
+        oldVid.style.display = 'none';
+      }
+    }
   }, [reaction]); 
 
   // Координаты робота
@@ -132,6 +133,7 @@ function Robot({ reaction = 'none' }) {
         src={robotIdleLoop}
         muted
         playsInline
+		preload="auto" 
         loop
         style={{
           position: 'absolute',
@@ -148,6 +150,7 @@ function Robot({ reaction = 'none' }) {
         src={robotIdleToTrue}
         muted
         playsInline
+		preload="auto" 
         loop={false}
         style={{
           position: 'absolute',
@@ -165,6 +168,7 @@ function Robot({ reaction = 'none' }) {
         src={robotIdleToFalse}
         muted
         playsInline
+		preload="auto" 
         loop={false}
         style={{
           position: 'absolute',
@@ -182,6 +186,7 @@ function Robot({ reaction = 'none' }) {
         src={robotTrueToIdle}
         muted
         playsInline
+		preload="auto" 
         loop={false}
         style={{
           position: 'absolute',
@@ -199,6 +204,7 @@ function Robot({ reaction = 'none' }) {
         src={robotFalseToIdle}
         muted
         playsInline
+		preload="auto" 
         loop={false}
         style={{
           position: 'absolute',

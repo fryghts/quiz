@@ -1,0 +1,1921 @@
+// ./src\components\AnswerButton.jsx
+// src/components/AnswerButton.jsx
+import React from 'react';
+import answerStyles from '../data/answerStyles.js';
+
+import buttonMouseout from '../assets/BUTTON_mouseout.png';
+import buttonMouseover from '../assets/BUTTON_mouseover.png';
+import buttonClickTrue from '../assets/BUTTON_click_TRUE.png';
+import buttonClickFalse from '../assets/BUTTON_click_FALSE.png';
+
+function AnswerButton({
+  questionId,
+  optionIndex,
+  position,
+  state,
+  onClick,
+  text,
+  disabled,
+}) {
+  const { x, y } = position;
+
+  let bg = buttonMouseout;
+  if (state === 'correct') bg = buttonClickTrue;
+  if (state === 'incorrect') bg = buttonClickFalse;
+
+  const styleConfig =
+    answerStyles[questionId] &&
+    answerStyles[questionId][optionIndex]
+      ? answerStyles[questionId][optionIndex]
+      : { width: 616, height: 120, fontSize: 24 };
+
+  const btnWidth = styleConfig.width;
+  const btnHeight = styleConfig.height;
+  const btnFontSize = styleConfig.fontSize;
+
+  return (
+    <button
+      style={{
+        position: 'absolute',
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${btnWidth}px`,
+        height: `${btnHeight}px`,
+        border: 'none',
+        // Используем шорт-запись background со слэш-синтаксисом:
+        background: `url(${bg}) no-repeat center center / cover`,
+
+        cursor: disabled ? 'default' : 'pointer',
+        fontSize: `${btnFontSize}px`,
+        lineHeight: `${btnHeight}px`,
+        color: '#fff', // <-- исправлено
+        textAlign: 'center',
+        fontFamily: 'TT Octosquares, sans-serif',
+      }}
+      onClick={onClick}
+      onMouseOver={(e) => {
+        if (!disabled && state === '') {
+          e.currentTarget.style.background = `url(${buttonMouseover}) no-repeat center center / cover`;
+        }
+      }}
+      onMouseOut={(e) => {
+        if (!disabled && state === '') {
+          e.currentTarget.style.background = `url(${buttonMouseout}) no-repeat center center / cover`;
+        }
+      }}
+      disabled={disabled}
+    >
+      {text}
+    </button>
+  );
+}
+
+export default AnswerButton;
+
+
+
+// ./src\components\AnswerInfo.jsx
+// src/components/AnswerInfo.jsx
+import React, { useEffect, useState } from 'react';
+import quizData from '../data/quizData.js';
+
+import frameIcon from '../assets/Video_placeholder.png';
+import closeIcon from '../assets/Button_close_video.png';
+
+function AnswerInfo({
+  infoType,
+  infoContent,
+  infoText,
+  infoTextConfig,
+  onClose,
+  isClosing,
+}) {
+  const [visible, setVisible] = useState(false);
+
+  const { answerInfo } = quizData;
+  const frame = answerInfo.frame;
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setVisible(true));
+    });
+  }, []);
+
+  const transformValue = isClosing
+    ? 'translate3d(0,1100px,0)'
+    : visible
+    ? 'translate3d(0,0,0)'
+    : 'translate3d(0,-1100px,0)';
+
+  function getMediaSource() {
+    if (infoType === 'video') {
+      return new URL(`../assets/video/${infoContent}`, import.meta.url).href;
+    }
+    return new URL(`../assets/${infoContent}`, import.meta.url).href;
+  }
+  const mediaSrc = getMediaSource();
+
+  return (
+    <div
+      className="answer-info"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '1920px',
+        height: '1080px',
+        overflow: 'hidden',
+        zIndex: 1000,
+        transform: transformValue,
+        transition: 'transform 0.3s ease',
+        willChange: 'transform',
+      }}
+    >
+      {/* Рамка инфографики */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${frame.position.left}px`,
+          top: `${frame.position.top}px`,
+          width: `${frame.size.width}px`,
+          height: `${frame.size.height}px`,
+          // Короткая запись background:
+          background: `url(${frameIcon}) no-repeat center center / cover`,
+          zIndex: 1,
+        }}
+      />
+
+      {infoType === 'image' ? (
+        <img
+          src={mediaSrc}
+          alt="Инфографика"
+          style={{
+            position: 'absolute',
+            left: '244px',
+            top: '30px',
+            width: '1426px',
+            height: '802px',
+            objectFit: 'cover',
+            zIndex: 2,
+          }}
+        />
+      ) : (
+        <video
+          autoPlay
+          loop
+          muted
+          style={{
+            position: 'absolute',
+            left: '244px',
+            top: '30px',
+            width: '1426px',
+            height: '802px',
+            objectFit: 'cover',
+            zIndex: 2,
+            background: '#000',
+            fontFamily: 'TT Octosquares, sans-serif',
+          }}
+        >
+          <source src={mediaSrc} type="video/webm" />
+          Ваш браузер не поддерживает видео.
+        </video>
+      )}
+
+      {/* Текст инфографики */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${infoTextConfig.position.left}px`,
+          top: `${infoTextConfig.position.top}px`,
+          width: `${infoTextConfig.size.width}px`,
+          height: `${infoTextConfig.size.height}px`,
+          fontSize: `${infoTextConfig.fontSize}px`,
+          lineHeight: infoTextConfig.lineHeight,
+          color: '#fff',
+          overflow: 'hidden',
+          textAlign: 'center',
+          zIndex: 3,
+          fontFamily: 'TT Octosquares, sans-serif',
+        }}
+      >
+        {infoText}
+      </div>
+
+      {/* Кнопка закрытия */}
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          left: '853px',
+          top: '985px',
+          width: '214px',
+          height: '52px',
+          background: `url(${closeIcon}) no-repeat center center / cover`,
+          border: 'none',
+          cursor: 'pointer',
+          zIndex: 4,
+          fontFamily: 'TT Octosquares, sans-serif',
+          fontSize: '36px',
+          color: '#fff',
+          textAlign: 'center',
+        }}
+      >
+        ЗАКРЫТЬ
+      </button>
+    </div>
+  );
+}
+
+export default AnswerInfo;
+
+
+// ./src\components\App.jsx
+// src/components/App.jsx
+import React, { useState } from 'react';
+import Preloader from './Preloader.jsx';
+import StartScreen from './StartScreen.jsx';
+import Quiz from './Quiz.jsx';
+import Result from './Result.jsx';
+
+function App() {
+  const [isPreloaded, setIsPreloaded] = useState(false);
+  const [screen, setScreen] = useState('start'); 
+  const [score, setScore] = useState(0);
+
+  const handlePreloadComplete = () => {
+    setIsPreloaded(true);
+  };
+
+  const handleStart = () => {
+    setScreen('quiz');
+  };
+
+  const handleQuizEnd = (finalScore) => {
+    setScore(finalScore);
+    setScreen('result');
+  };
+
+  const handleRetry = () => {
+    setScore(0);
+    setScreen('quiz');
+  };
+
+  if (!isPreloaded) {
+    return <Preloader onComplete={handlePreloadComplete} />;
+  }
+
+  return (
+    <div className="app-container">
+      {screen === 'start' && <StartScreen onStart={handleStart} />}
+      {screen === 'quiz' && <Quiz onQuizEnd={handleQuizEnd} />}
+      {screen === 'result' && <Result score={score} onRetry={handleRetry} />}
+    </div>
+  );
+}
+
+export default App;
+
+
+
+// ./src\components\main.jsx
+// src/components/main.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import '../styles/App.css';
+
+function calculateScaleFactor() {
+  const baseWidth = 1920;
+  const baseHeight = 1080;
+
+  const scaleX = window.innerWidth / baseWidth;
+  const scaleY = window.innerHeight / baseHeight;
+
+  // Если хотим только уменьшать, а не увеличивать:
+  // берем scaleFactor = min(1, scaleX, scaleY)
+  const scaleFactor = Math.min(1, scaleX, scaleY);
+
+  document.documentElement.style.setProperty('--scale-factor', scaleFactor);
+}
+
+window.addEventListener('resize', calculateScaleFactor);
+calculateScaleFactor();
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+//  <React.StrictMode>
+    <App />
+//  </React.StrictMode>
+);
+
+
+// ./src\components\Preloader.jsx
+// src/components/Preloader.jsx
+import React, { useState, useEffect } from 'react';
+import quizData from '../data/quizData.js';
+
+// Импортируем ВСЕ нужные файлы
+import globalBackground from '../assets/global_background.png';
+
+import robotIdleLoop from '../assets/Robot_Idle_loop.webm';
+import robotIdleToTrue from '../assets/Robot_Idle_to_True.webm';
+import robotIdleToFalse from '../assets/Robot_Idle_to_False.webm';
+import robotTrueToIdle from '../assets/Robot_True_to_Idle.webm';
+import robotFalseToIdle from '../assets/Robot_False_to_Idle.webm';
+
+import quizTitle from '../assets/QUIZ_TTILE_page.png';
+import buttonMouseout from '../assets/BUTTON_mouseout.png';
+import buttonMouseover from '../assets/BUTTON_mouseover.png';
+import buttonClickTrue from '../assets/BUTTON_click_TRUE.png';
+import buttonClickFalse from '../assets/BUTTON_click_FALSE.png';
+import buttonResultScreen from '../assets/Button_result_screen.png';
+import background from '../assets/background.png';
+import videoPlaceholder from '../assets/Video_placeholder.png';
+import buttonCloseVideo from '../assets/Button_close_video.png';
+import resultScreenFrame from '../assets/Result_screen_frame.png';
+
+// Предположим, что файлы инфографики: info1.webm, info2.webm, ... info15.webm
+import info1Video from '../assets/video/info1.webm';
+import info2Video from '../assets/video/info2.webm';
+import info3Video from '../assets/video/info3.webm';
+import info4Video from '../assets/video/info4.webm';
+import info5Video from '../assets/video/info5.webm';
+import info6Video from '../assets/video/info6.webm';
+import info7Video from '../assets/video/info7.webm';
+import info8Video from '../assets/video/info8.webm';
+import info9Video from '../assets/video/info9.webm';
+import info10Video from '../assets/video/info10.webm';
+import info11Video from '../assets/video/info11.webm';
+import info12Video from '../assets/video/info12.webm';
+import info13Video from '../assets/video/info13.webm';
+import info14Video from '../assets/video/info14.webm';
+import info15Video from '../assets/video/info15.webm';
+// ... добавьте остальные
+
+function Preloader({ onComplete }) {
+  const [loadedCount, setLoadedCount] = useState(0);
+
+  // 1. картинки
+  const images = [
+    // Глобальный фон - загружаем первым
+    globalBackground,
+
+    quizTitle,
+    buttonMouseout,
+    buttonMouseover,
+    buttonClickTrue,
+    buttonClickFalse,
+    buttonResultScreen,
+    background,
+    videoPlaceholder,
+    buttonCloseVideo,
+    resultScreenFrame,
+  ];
+
+  // 2. Видео робота
+  const robotVideos = [
+    robotIdleLoop,
+    robotIdleToTrue,
+    robotIdleToFalse,
+    robotTrueToIdle,
+    robotFalseToIdle,
+  ];
+
+  // 3. Видео инфографики
+  const infographicVideos = [
+    info1Video,
+    info2Video,
+    info3Video,
+    info4Video,
+    info5Video,
+	info6Video,
+    info7Video,
+    info8Video,
+    info9Video,
+    info10Video,
+	info11Video,
+    info12Video,
+    info13Video,
+    info14Video,
+    info15Video,
+  ];
+
+  let totalAssets =
+    images.length + robotVideos.length + infographicVideos.length;
+
+  useEffect(() => {
+    preloadAssets();
+  }, []);
+
+  const handleAssetLoaded = () => {
+    setLoadedCount((prev) => prev + 1);
+  };
+
+  function preloadImage(src) {
+    const img = new Image();
+    img.src = src;
+    img.onload = handleAssetLoaded;
+    img.onerror = handleAssetLoaded;
+  }
+
+  function preloadVideo(src) {
+    const video = document.createElement('video');
+    video.preload = 'auto';
+    video.src = src;
+    video.oncanplaythrough = handleAssetLoaded;
+    video.onerror = handleAssetLoaded;
+  }
+
+  function preloadAssets() {
+    // 1. Все картинки
+    images.forEach((imgPath) => {
+      preloadImage(imgPath);
+    });
+
+    // 2. Видео робота
+    robotVideos.forEach((vidPath) => {
+      preloadVideo(vidPath);
+    });
+
+    // 3. Инфографика
+    infographicVideos.forEach((vidPath) => {
+      preloadVideo(vidPath);
+    });
+  }
+
+  useEffect(() => {
+    if (loadedCount >= totalAssets) {
+      onComplete();
+    }
+  }, [loadedCount, totalAssets, onComplete]);
+
+  const percent = totalAssets
+    ? Math.round((loadedCount / totalAssets) * 100)
+    : 100;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        color: '#fff',
+        fontFamily: 'TT Octosquares, sans-serif',
+      }}
+    >
+      <h1>Загрузка... {percent}%</h1>
+    </div>
+  );
+}
+
+export default Preloader;
+
+
+// ./src\components\Quiz.jsx
+// src/components/Quiz.jsx
+import React, { useState, useEffect } from 'react';
+import quizData from '../data/quizData.js';
+import Robot from './Robot.jsx';
+import AnswerInfo from './AnswerInfo.jsx';
+import AnswerButton from './AnswerButton.jsx';
+
+import questionFrameImg from '../assets/question_frame.png';
+import scoreFrameImg from '../assets/SCORE_frame.png';
+
+function Quiz({ onQuizEnd }) {
+  const { questions, questionFrame, scoreFrame } = quizData;
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showAnswerInfo, setShowAnswerInfo] = useState(false);
+  const [isClosingInfo, setIsClosingInfo] = useState(false);
+  const [score, setScore] = useState(0);
+  const [robotReaction, setRobotReaction] = useState('idle');
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(null);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const qFrame = questionFrame.frame;
+  const sFrame = scoreFrame.frame;
+  const sText = scoreFrame.text;
+
+  const qLabelPos = currentQuestion.questionLabelPos;
+  const qTextConfig = currentQuestion.questionText;
+
+  useEffect(() => {
+    if (currentQuestionIndex === 0) {
+      setRobotReaction('idle');
+    }
+  }, [currentQuestionIndex]);
+
+  const handleAnswerClick = (index) => {
+    if (selectedOptionIndex !== null) return;
+    const isCorrect = index === currentQuestion.correctAnswerIndex;
+    setSelectedOptionIndex(index);
+    setIsAnswerCorrect(isCorrect);
+    if (isCorrect) setScore((prev) => prev + 1);
+
+    setRobotReaction(isCorrect ? 'correct' : 'incorrect');
+
+    setTimeout(() => {
+      setShowAnswerInfo(true);
+    }, 2000);
+  };
+
+  const handleCloseInfographic = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+
+    setIsClosingInfo(true);
+    setTimeout(() => {
+      setShowAnswerInfo(false);
+      setIsClosingInfo(false);
+
+      setRobotReaction(isAnswerCorrect ? 'toIdleFromCorrect' : 'toIdleFromIncorrect');
+
+      setTimeout(() => {
+        setRobotReaction('idle');
+        if (currentQuestionIndex + 1 < questions.length) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        } else {
+          if (onQuizEnd) onQuizEnd(score);
+        }
+        setSelectedOptionIndex(null);
+        setIsAnswerCorrect(null);
+        setIsTransitioning(false);
+      }, 2000);
+    }, 500);
+  };
+
+  const buttonPositions = [
+    { x: 606 - 308, y: 775 - 60 },
+    { x: 606 - 308, y: 648 - 60 },
+    { x: 606 - 308, y: 521 - 60 },
+    { x: 606 - 308, y: 394 - 60 },
+  ];
+
+  function getButtonState(index) {
+    if (selectedOptionIndex === null) return '';
+    return index === selectedOptionIndex
+      ? isAnswerCorrect ? 'correct' : 'incorrect'
+      : '';
+  }
+
+  return (
+    <div
+      className="quiz-container"
+      style={{
+        position: 'relative',
+        width: '1920px',
+        height: '1080px',
+        overflow: 'hidden',
+        margin: '0 auto',
+      }}
+    >
+      {/* Рамка вопроса */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${qFrame.position.left}px`,
+          top: `${qFrame.position.top}px`,
+          width: `${qFrame.size.width}px`,
+          height: `${qFrame.size.height}px`,
+          // Короткая запись:
+          background: `url(${questionFrameImg}) no-repeat center center / cover`,
+          zIndex: 1,
+        }}
+      />
+
+      {/* Метка "Вопрос X" */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${qLabelPos.left}px`,
+          top: `${qLabelPos.top}px`,
+          width: `${qLabelPos.width}px`,
+          height: `${qLabelPos.height}px`,
+          fontSize: `${qLabelPos.fontSize}px`,
+          lineHeight: qLabelPos.lineHeight,
+          color: '#fff',
+          textAlign: 'left',
+          zIndex: 3,
+        }}
+      >
+        {currentQuestion.questionLabel}
+      </div>
+
+      {/* Текст вопроса */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${qTextConfig.position.left}px`,
+          top: `${qTextConfig.position.top}px`,
+          width: `${qTextConfig.size.width}px`,
+          height: `${qTextConfig.size.height}px`,
+          fontSize: `${qTextConfig.fontSize}px`,
+          lineHeight: qTextConfig.lineHeight,
+          color: '#fff',
+          overflow: 'hidden',
+          textAlign: 'center',
+          zIndex: 2,
+        }}
+      >
+        {currentQuestion.question}
+      </div>
+
+      {/* Рамка счёта */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${sFrame.position.left}px`,
+          top: `${sFrame.position.top}px`,
+          width: `${sFrame.size.width}px`,
+          height: `${sFrame.size.height}px`,
+          background: `url(${scoreFrameImg}) no-repeat center center / cover`,
+          zIndex: 1,
+        }}
+      />
+
+      {/* Текст счёта */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${sText.position.left}px`,
+          top: `${sText.position.top}px`,
+          width: `${sText.size.width}px`,
+          height: `${sText.size.height}px`,
+          color: '#fff',
+          fontSize: `${sText.fontSize}px`,
+          lineHeight: sText.lineHeight,
+          textAlign: 'center',
+          overflow: 'hidden',
+          zIndex: 2,
+        }}
+      >
+        {currentQuestionIndex + 1}/{questions.length}
+      </div>
+
+      {/* Кнопки ответов */}
+      <div className="options">
+        {currentQuestion.options.map((option, i) => (
+          <AnswerButton
+            key={i}
+            questionId={currentQuestion.id}
+            optionIndex={i}
+            position={buttonPositions[i]}
+            state={getButtonState(i)}
+            onClick={() => handleAnswerClick(i)}
+            text={option}
+            disabled={selectedOptionIndex !== null}
+          />
+        ))}
+      </div>
+
+      {/* Робот */}
+      <Robot reaction={robotReaction} />
+
+      {/* Инфографика */}
+      {showAnswerInfo && (
+        <AnswerInfo
+          infoType={currentQuestion.infoType}
+          infoContent={currentQuestion.infoContent}
+          infoText={currentQuestion.answerText}
+          infoTextConfig={currentQuestion.infoTextConfig}
+          onClose={handleCloseInfographic}
+          isClosing={isClosingInfo}
+        />
+      )}
+    </div>
+  );
+}
+
+export default Quiz;
+
+
+
+// ./src\components\Result.jsx
+// src/components/Result.jsx
+import React from 'react';
+import quizData from '../data/quizData.js';
+import Robot from './Robot.jsx';
+import resultFrameImg from '../assets/Result_screen_frame.png';
+import ButtonRetryImg from '../assets/Button_result_screen.png';
+
+function Result({ score, onRetry }) {
+  const { resultScreen, questions } = quizData;
+  const totalQuestions = questions.length;
+
+  return (
+    <div
+      className="result-container"
+      style={{
+        position: 'relative',
+        width: '1920px',
+        height: '1080px',
+        overflow: 'hidden',
+        margin: '0 auto',
+      }}
+    >
+      <Robot reaction="idle" />
+
+      {/* Рамка результата */}
+      <div
+        style={{
+          position: 'absolute',
+          left: `${resultScreen.frame.position.x}px`,
+          top: `${resultScreen.frame.position.y}px`,
+          width: `${resultScreen.frame.size.width}px`,
+          height: `${resultScreen.frame.size.height}px`,
+          background: `url(${resultFrameImg}) no-repeat center center / cover`,
+          zIndex: 1,
+        }}
+      />
+
+      {/* "ВАШ РЕЗУЛЬТАТ" */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '515px',
+          top: '242px',
+          width: '500px',
+          height: '200px',
+          fontSize: '46px',
+          color: '#fff',
+          textAlign: 'left',
+          zIndex: 2,
+          fontFamily: 'TT Octosquares, sans-serif',
+        }}
+      >
+        ВАШ РЕЗУЛЬТАТ
+      </div>
+
+      {/* "X/Y" */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '480px',
+          top: '312px',
+          width: '300px',
+          height: '200px',
+          fontSize: '184px',
+          color: '#fff',
+          textAlign: 'center',
+          zIndex: 2,
+          fontFamily: 'TT Octosquares, sans-serif',
+        }}
+      >
+        {score}/{totalQuestions}
+      </div>
+
+
+      {/* Кнопка "ЕЩЁ РАЗ!" */}
+      <button
+        onClick={onRetry}
+        style={{
+          position: 'absolute',
+          left: `${resultScreen.buttonRetry.position.x}px`,
+          top: `${resultScreen.buttonRetry.position.y}px`,
+          width: `${resultScreen.buttonRetry.size.width}px`,
+          height: `${resultScreen.buttonRetry.size.height}px`,
+          background: `url(${ButtonRetryImg}) no-repeat center center / cover`,
+          border: 'none',
+          cursor: 'pointer',
+          zIndex: 3,
+          color: '#fff',
+          fontFamily: 'TT Octosquares, sans-serif',
+          fontSize: '48px',
+          textAlign: 'center',
+        }}
+      >
+        ЕЩЁ РАЗ!
+      </button>
+    </div>
+  );
+}
+
+export default Result;
+
+
+// ./src\components\Robot.jsx
+// src/components/Robot.jsx
+import React, { useEffect, useRef } from 'react';
+
+import robotIdleLoop from '../assets/Robot_Idle_loop.webm';
+import robotIdleToTrue from '../assets/Robot_Idle_to_True.webm';
+import robotIdleToFalse from '../assets/Robot_Idle_to_False.webm';
+import robotTrueToIdle from '../assets/Robot_True_to_Idle.webm';
+import robotFalseToIdle from '../assets/Robot_False_to_Idle.webm';
+
+/*
+  Варианты reaction (из Quiz/StartScreen/Result):
+  - "none"
+  - "paused"
+  - "idle"
+  - "correct"           -> показываем idleToTrue (сингл)
+  - "incorrect"         -> idleToFalse (сингл)
+  - "toIdleFromCorrect" -> trueToIdle (сингл)
+  - "toIdleFromIncorrect" -> falseToIdle (сингл)
+*/
+
+function Robot({ reaction = 'none' }) {
+  // Мэп реакций к ключам видео
+  const videoKeyByReaction = {
+    none: 'none',
+    paused: 'idleLoop',
+    idle: 'idleLoop',
+
+    // ИСПРАВЛЕНИЕ: сопоставим 'correct' -> 'idleToTrue', и т.д.
+    correct: 'idleToTrue',
+    incorrect: 'idleToFalse',
+    toIdleFromCorrect: 'trueToIdle',
+    toIdleFromIncorrect: 'falseToIdle',
+  };
+
+  // Какой ключ видео показываем
+  const currentKey = videoKeyByReaction[reaction] || 'none';
+
+  // Рефы
+  const idleLoopRef = useRef(null);
+  const idleToTrueRef = useRef(null);
+  const idleToFalseRef = useRef(null);
+  const trueToIdleRef = useRef(null);
+  const falseToIdleRef = useRef(null);
+
+  // Собираем в объект
+  const refs = {
+    none: null,
+    idleLoop: idleLoopRef,
+    idleToTrue: idleToTrueRef,
+    idleToFalse: idleToFalseRef,
+    trueToIdle: trueToIdleRef,
+    falseToIdle: falseToIdleRef,
+  };
+
+  // Предыдущая reaction
+  const prevReactionRef = useRef(null);
+
+  // Застыть на последнем кадре
+  function freezeOnLastFrame(vid) {
+    if (!vid) return;
+    vid.pause();
+    const pos = vid.duration - 0.01;
+    if (pos > 0) {
+      try {
+        vid.currentTime = pos;
+      } catch {}
+    }
+  }
+
+  useEffect(() => {
+    const prev = prevReactionRef.current;
+    prevReactionRef.current = reaction;
+
+
+
+    if (currentKey === 'none') {
+      // вообще ничего не показываем
+      return;
+    }
+
+    const newVid = refs[currentKey]?.current;
+    if (newVid) {
+      newVid.style.display = 'block';
+
+      if (reaction === 'paused') {
+        // кадр0, пауза
+        newVid.pause();
+        newVid.currentTime = 0;
+      }
+      else if (reaction === 'idle') {
+        // idleLoop => зациклить
+        newVid.loop = true;
+        newVid.currentTime = 0;
+        newVid.play().catch(()=>{});
+      }
+      else {
+        // correct, incorrect, toIdleFromCorrect, toIdleFromIncorrect
+        // => idleToTrue, idleToFalse, trueToIdle, falseToIdle
+        newVid.loop = false;
+        newVid.currentTime = 0;
+        newVid.play().catch(()=>{});
+      }
+    }
+	    // Скрываем старую анимацию
+    if (prev && prev !== 'none') {
+      const oldKey = videoKeyByReaction[prev];
+      const oldVid = refs[oldKey]?.current;
+      if (oldVid) {
+        oldVid.pause();
+        oldVid.currentTime = 0;
+        oldVid.style.display = 'none';
+      }
+    }
+  }, [reaction]); 
+
+  // Координаты робота
+  const robotX = 1368 - 500;
+  const robotY = 540 - 540;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      left: `${robotX}px`,
+      top: `${robotY}px`,
+      width: '1000px',
+      height: '1080px',
+      overflow: 'hidden',
+      background: 'transparent',
+    }}>
+      {/* idleLoop */}
+      <video
+        ref={idleLoopRef}
+        src={robotIdleLoop}
+        muted
+        playsInline
+        loop
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'none',
+        }}
+      />
+
+      {/* idleToTrue */}
+      <video
+        ref={idleToTrueRef}
+        src={robotIdleToTrue}
+        muted
+        playsInline
+        loop={false}
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'none',
+        }}
+        onEnded={(e) => freezeOnLastFrame(e.currentTarget)}
+      />
+
+      {/* idleToFalse */}
+      <video
+        ref={idleToFalseRef}
+        src={robotIdleToFalse}
+        muted
+        playsInline
+        loop={false}
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'none',
+        }}
+        onEnded={(e) => freezeOnLastFrame(e.currentTarget)}
+      />
+
+      {/* trueToIdle */}
+      <video
+        ref={trueToIdleRef}
+        src={robotTrueToIdle}
+        muted
+        playsInline
+        loop={false}
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'none',
+        }}
+        onEnded={(e) => freezeOnLastFrame(e.currentTarget)}
+      />
+
+      {/* falseToIdle */}
+      <video
+        ref={falseToIdleRef}
+        src={robotFalseToIdle}
+        muted
+        playsInline
+        loop={false}
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'none',
+        }}
+        onEnded={(e) => freezeOnLastFrame(e.currentTarget)}
+      />
+    </div>
+  );
+}
+
+export default Robot;
+
+
+// ./src\components\StartScreen.jsx
+// src/components/StartScreen.jsx
+import React from 'react';
+import quizData from '../data/quizData.js';
+import Robot from './Robot.jsx';
+import QUIZ_TITLE from '../assets/QUIZ_TTILE_page.png';
+import ButtonStartIcon from '../assets/Button_result_screen.png';
+
+function StartScreen({ onStart }) {
+  const { startScreen } = quizData;
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '1920px',
+        height: '1080px',
+        background: `url(${QUIZ_TITLE}) no-repeat center center / cover`,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Робот стоит на кадре 0 "idleLoop" */}
+      <Robot reaction="paused" />
+
+      <button
+        onClick={onStart}
+        style={{
+          position: 'absolute',
+          left: `${startScreen.buttonStart.position.x}px`,
+          top: `${startScreen.buttonStart.position.y}px`,
+          width: `${startScreen.buttonStart.size.width}px`,
+          height: `${startScreen.buttonStart.size.height}px`,
+          background: `url(${ButtonStartIcon}) no-repeat center center / cover`,
+          border: 'none',
+          cursor: 'pointer',
+          fontFamily: 'TT Octosquares, sans-serif',
+          fontSize: '48px',
+          color: '#fff',
+          textAlign: 'center',
+        }}
+      >
+        НАЧАТЬ!
+      </button>
+    </div>
+  );
+}
+
+export default StartScreen;
+
+
+// ./src\data\answerStyles.js
+// src/data/answerStyles.js
+
+/**
+ * answerStyles[questionId] = массив (4 элемента),
+ * каждый элемент описывает стиль для соответствующего варианта ответа
+ *  {
+ *    width: number,
+ *    height: number,
+ *    fontSize: number,
+ *  }
+ */
+const answerStyles = {
+  1: [
+    // Вопрос 1, вариант 0
+    { width: 616, height: 120, fontSize: 36 },
+    // вариант 1
+    { width: 616, height: 120, fontSize: 36 },
+    // вариант 2
+    { width: 616, height: 120, fontSize: 36 },
+    // вариант 3
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+  2: [
+    // Вопрос 2
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+  3: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+  4: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+  5: [
+    { width: 616, height: 120, fontSize: 28 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 32 },
+  ],
+
+  6: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 32 },
+  ],
+
+  7: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+  8: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+  9: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+  10: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+  11: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+  12: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 34 },
+  ],
+
+  13: [
+    { width: 616, height: 120, fontSize: 32 },
+    { width: 616, height: 120, fontSize: 32 },
+    { width: 616, height: 120, fontSize: 32 },
+    { width: 616, height: 120, fontSize: 32 },
+  ],
+
+  14: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+  15: [
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 36 },
+  ],
+
+};
+
+export default answerStyles;
+
+
+// ./src\data\quizData.js
+// /src/data/quizData.js
+
+const quizData = {
+  /* Настройки для стартового экрана */
+  startScreen: {
+    robotPosition: { x: 1368 - 500, y: 540 - 540 }, // позиция робота idle
+    buttonStart: {
+      position: { x: 450, y: 600 },
+      size: { width: 346, height: 78 },
+    },
+  },
+
+  /* Рамка вопроса (общая) */
+  questionFrame: {
+    frame: {
+      position: { left: 192, top: 79 },
+      size: { width: 836, height: 218 },
+    },
+  },
+
+  /* Рамка счёта (общая) */
+  scoreFrame: {
+    frame: {
+      position: { left: 1563, top: 836 },
+      size: { width: 214, height: 120 },
+    },
+
+    text: {
+      position: { left: 1575, top: 845 },
+      size: { width: 194, height: 100 },
+      fontSize: 90,
+      lineHeight: 1.0,
+    },
+  },
+
+  /* Инфографика (общая часть рамки) */
+  answerInfo: {
+    frame: {
+      position: { left: 200, top: 0 },
+      size: { width: 1520, height: 1020 },
+    },
+  },
+
+  /* Экран результата */
+  resultScreen: {
+    frame: {
+      position: { x: 362, y: 236},
+      size: { width: 526, height: 355 },
+    },
+    text: {
+      position: { x: 362, y: 236 },
+      size: { width: 500, height: 200 },
+      fontSize: 64,
+      lineHeight: 1.2,
+    },
+    buttonRetry: {
+      position: { x: 452, y: 673},
+      size: { width: 346, height: 78 },
+    },
+  },
+
+  questions: [
+    {
+      id: 1,
+      questionLabel: "Вопрос 1",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+
+      question: "Какова общая протяженность газотранспортной системы в России?",
+      questionText: {
+        position: { left: 270, top: 140 },
+        size: { width: 700, height: 118 },
+        fontSize: 50,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info1.webm",
+      answerText: "180,6 тысяч километров – именно столько составляет протяженность газотранспортной системы в России. Так как длина экватора – 40 075 км, то российскими газовыми трубами можно обогнуть экватор Земли 4,5 раза!",
+      infoTextConfig: {
+        position: { left: 430, top: 850 },
+        size: { width: 1150, height: 300 },
+        fontSize: 42,
+        lineHeight: 1.0,
+      },
+      options: ["100 тысяч километров", "150 тысяч километров", "2 экватора Земли", "4,5 экватора Земли"],
+      correctAnswerIndex: 3,
+    },
+    {
+      id: 2,
+      questionLabel: "Вопрос 2",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+
+      question: "Сколько метров составил самый большой перепад высот между точкой входа и точкой выхода при строительстве магистрального газопровода в России?",
+      questionText: {
+        position: { left: 240, top: 140 },
+        size: { width: 740, height: 150 },
+        fontSize: 38,
+        lineHeight: 1.10,
+      },
+      infoType: "video",
+      infoContent: "info2.webm",
+      answerText: "При сооружении участка «Ковыкта — Чаянда» газопровода «Сила Сибири» построен уникальный 1,5-километровый переход под рекой Лена с самым большим перепадом высот между точками входа и выхода — 157,94 м. Этот рекорд занесён в Книгу рекордов России.",
+      infoTextConfig: {
+        position: { left: 460, top: 850 },
+        size: { width: 1100, height: 300 },
+        fontSize: 36,
+        lineHeight: 1.2,
+      },
+      options: ["102,13 м", "128, 64 м", "157,94 м", "216, 59 м"],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 3 ======
+    {
+      id: 3,
+      questionLabel: "Вопрос 3",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question: "Из какого материала не изготавливают трубы для газопровода?",
+      questionText: {
+        position: { left: 240, top: 143 },
+        size: { width: 740, height: 150 },
+        fontSize: 48,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info3.webm",
+      answerText:
+        "Трубы могут изготавливать из двух видов полиэтилена, высокоуглеродистой стали, в последние годы все активнее используют асбоцементные трубы. А вот алюминий для газовых труб не подходит.",
+      infoTextConfig: {
+        position: { left: 465, top: 855 },
+        size: { width: 1085, height: 300 },
+        fontSize: 40,
+        lineHeight: 1.0,
+      },
+      options: ["Полиэтилена", "Стали", "Алюминия", "Асбоцемента"],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 4 ======
+    {
+      id: 4,
+      questionLabel: "Вопрос 4",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Сборку магистральных трубопроводов производят через природные и искусственные препятствия. Какой  из нижеперечисленных прокладок трубопроводов не существует?",
+      questionText: {
+        position: { left: 240, top: 140 },
+        size: { width: 740, height: 150 },
+        fontSize: 34,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info4.webm",
+      answerText:
+        "Трубы могут находиться в земле и над ней, на дне рек, озёр, болот и морей, а вот специальных надводных конструкций не существует",
+      infoTextConfig: {
+        position: { left: 470, top: 855 },
+        size: { width: 1080, height: 300 },
+        fontSize: 48,
+        lineHeight: 1.2,
+      },
+      options: ["Подводной", "Надводной", "Подземной", "Наземной"],
+      correctAnswerIndex: 1,
+    },
+
+    // ====== Вопрос 5 ======
+    {
+      id: 5,
+      questionLabel: "Вопрос 5",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Если газопровод прокладывают в районе с неустойчивыми грунтами и породами, что для этого никогда не используют?",
+      questionText: {
+        position: { left: 235, top: 150 },
+        size: { width: 760, height: 150 },
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info5.webm",
+      answerText:
+        "Чтобы трубопровод не разрушился при оползнях и сейсмических подвижках используют трубы с повышенными деформационными способностями, с высокой вязкостью сварного соединения и специальные конструктивные решения. А «Трубы-трансформеры» - это, возможно, название очередного голливудского блокбастера.",
+      infoTextConfig: {
+        position: { left: 460, top: 847 },
+        size: { width: 1090, height: 300 },
+        fontSize: 36,
+        lineHeight: 0.95,
+      },
+      options: [
+        "Трубы с повышенными деформационными способностями",
+        "Специальные конструктивные решения",
+        "Трубы-трансформеры",
+        "Трубы с высокой вязкостью сварного соединения",
+      ],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 6 ======
+    {
+      id: 6,
+      questionLabel: "Вопрос 6",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Для добычи углеводородов в Охотском море, которое 7 месяцев в году покрыто льдом, «Газпром» применяет передовые технологии. В чём уникальность Киринского газоконденсатного месторождения?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 32,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info6.webm",
+      answerText:
+        "Киринское месторождение – единственное на российском шельфе, где добыча впервые ведется с помощью подводного добычного комплекса без использования платформ и иных надводных конструкций.",
+      infoTextConfig: {
+        position: { left: 455, top: 850 },
+        size: { width: 1100, height: 300 },
+        fontSize: 42,
+        lineHeight: 1.0,
+      },
+      options: [
+        "Специальный ледорубный комплекс",
+        "Особенная надводная конструкция",
+        "Подводный добычной комплекс",
+        "Трубы специальной конструкции из особого сплава",
+      ],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 7 ======
+    {
+      id: 7,
+      questionLabel: "Вопрос 7",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Какой из перечисленных газопроводов стал дважды мировым рекордсменом?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 48,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info7.webm",
+      answerText:
+        "«Турецкий поток». Он построен на глубине более 2 км, никогда ранее газопровод такого большого диаметра не укладывали так глубоко. К тому же именно «Турецкому потоку» принадлежит рекорд по скорости морской укладки.",
+      infoTextConfig: {
+        position: { left: 455, top: 850 },
+        size: { width: 1100, height: 300 },
+        fontSize: 40,
+        lineHeight: 1.0,
+      },
+      options: [
+        "Голубой поток",
+        "Сила Сибири",
+        "Турецкий поток",
+        "Уренгой – Помары – Ужгород",
+      ],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 8 ======
+    {
+      id: 8,
+      questionLabel: "Вопрос 8",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Какие уникальные находки не были обнаружены при строительстве «Турецкого потока»?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 46,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info8.webm",
+      answerText:
+        "Следы пребывания сарматских племен, останки византийских кораблей и уникальная амфора, которой более 3 тысяч лет - все эти раритеты были обнаружены археологами во время исследования территории, выделенной под строительство «Турецкого потока». А вот древнеримской статуи среди находок не было",
+      infoTextConfig: {
+        position: { left: 460, top: 845 },
+        size: { width: 1090, height: 300 },
+        fontSize: 36,
+        lineHeight: 1.0,
+      },
+      options: [
+        "Древнее сарматское поселение",
+        "Останки византийских кораблей",
+        "Древнеримская статуя",
+        "Амфора, которой 3000 лет",
+      ],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 9 ======
+    {
+      id: 9,
+      questionLabel: "Вопрос 9",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Какой музыкальный инструмент вы не найдёте в словаре профессионального сленга сотрудников газовой промышленности?",
+      questionText: {
+        position: { left: 220, top: 155 },
+        size: { width: 780, height: 150 },
+        fontSize: 35,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info9.webm",
+      answerText:
+        "«Гитара» – трубопроводная технологическая обвязка, «контрабас» – промышленный контроллер, «балалайка» – агрегат для освоения и ремонта скважин. «Виолончель» среди сленговых наименований не встречается.",
+      infoTextConfig: {
+        position: { left: 455, top: 855 },
+        size: { width: 1100, height: 300 },
+        fontSize: 40,
+        lineHeight: 1.0,
+      },
+      options: ["Гитара", "Контрабас", "Виолончель", "Балалайка"],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 10 ======
+    {
+      id: 10,
+      questionLabel: "Вопрос 10",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Какой термин из биологии не был позаимствован газовой отраслью?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 48,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info10.webm",
+      answerText:
+        "Кустом называется площадка, где расположены устья газовых скважин. Устье называют елкой. «Мартышкой» – штурвальный ключ. А вот «бабочка» не прижилась в профессиональном сленге.",
+      infoTextConfig: {
+        position: { left: 455, top: 845 },
+        size: { width: 1100, height: 300 },
+        fontSize: 46,
+        lineHeight: 1.0,
+      },
+      options: ["Бабочка", "Куст", "Мартышка", "Ёлка"],
+      correctAnswerIndex: 0,
+    },
+
+    // ====== Вопрос 11 ======
+    {
+      id: 11,
+      questionLabel: "Вопрос 11",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Для диагностики магистральных трубопроводов используются внутритрубные снаряды, которые запускаются внутрь труб и изучают их на протяжении пути от одной компрессорной станции к другой. Благодаря чему эти роботы перемещаются?",
+      questionText: {
+        position: { left: 230, top: 145 },
+        size: { width: 770, height: 150 },
+        fontSize: 28,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info11.webm",
+      answerText:
+        "Снаряды для диагностики передвигаются не за счёт гусениц и колёс, и даже не из-за двигателя. Они перемещаются благодаря потоку газа.",
+      infoTextConfig: {
+        position: { left: 455, top: 865 },
+        size: { width: 1100, height: 300 },
+        fontSize: 48,
+        lineHeight: 1.0,
+      },
+      options: [
+        "Резиновые гусеницы",
+        "Специальные колёса",
+        "Поток газа",
+        "Уникальный электродвигатель",
+      ],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 12 ======
+    {
+      id: 12,
+      questionLabel: "Вопрос 12",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Как роботы-дефектоскопы перемещаются по газопроводу / внутри компрессорных станций?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 46,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info12.webm",
+      answerText:
+        "Роботы-дефектоскопы перемещаются самостоятельно, управляются с помощью пульта. Не нужно тянуть стальную нить или иметь систему магнитов.",
+      infoTextConfig: {
+        position: { left: 455, top: 870 },
+        size: { width: 1100, height: 300 },
+        fontSize: 42,
+        lineHeight: 1.0,
+      },
+      options: [
+        "Система магнитов",
+        "Cпециальная стальная нить",
+        "Самостоятельно, с помощью пульта",
+        "Благодаря действиям сотрудника внутри трубы",
+      ],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 13 ======
+    {
+      id: 13,
+      questionLabel: "Вопрос 13",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Какие параметры должен выдерживать морской магистральный газопровод?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 48,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info13.webm",
+      answerText:
+        "Морской магистральный газопровод выдерживает давление до 300 атмосфер и температуру до 400 °C.",
+      infoTextConfig: {
+        position: { left: 455, top: 860 },
+        size: { width: 1100, height: 300 },
+        fontSize: 52,
+        lineHeight: 1.0,
+      },
+      options: [
+        "Давление до 300 атмосфер и температуру до 400 °C",
+        "Давление до 200 атмосфер и объём до 1 млн куб.м",
+        "Температуру до 100 °C и вязкость до 300 Па•с",
+        "Давление до 150 атмосфер и температуру до 200°C",
+      ],
+      correctAnswerIndex: 0,
+    },
+
+    // ====== Вопрос 14 ======
+    {
+      id: 14,
+      questionLabel: "Вопрос 14",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Какой выдуманный сказочный персонаж не имеет отношения к газовой промышленности?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 46,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info14.webm",
+      answerText:
+        "«Горыныч» – это передвижная парообразующая установка, «Дракон» — кольцевой подогреватель, «Чебурашка» – газомаслоотделитель или переносимая радиостанция. А вот «Шапокляк» нет в сленге газовиков.",
+      infoTextConfig: {
+        position: { left: 455, top: 855 },
+        size: { width: 1100, height: 300 },
+        fontSize: 40,
+        lineHeight: 1.0,
+      },
+      options: ["Горыныч", "Дракон", "Шапокляк", "Чебурашка"],
+      correctAnswerIndex: 2,
+    },
+
+    // ====== Вопрос 15 ======
+    {
+      id: 15,
+      questionLabel: "Вопрос 15",
+      questionLabelPos: {
+        left: 560,
+        top: 84,
+        width: 200,
+        height: 40,
+        fontSize: 38,
+        lineHeight: 1.2,
+      },
+      question:
+        "Где находится первый и единственный в России полигон пневматических испытаний труб?",
+      questionText: {
+        position: { left: 240, top: 145 },
+        size: { width: 740, height: 150 },
+        fontSize: 46,
+        lineHeight: 1.2,
+      },
+      infoType: "video",
+      infoContent: "info15.webm",
+      answerText:
+        "Уникальный полигон пневматических испытаний труб находится в городе Копейске Челябинской области. Это первый и единственный в России и третий в мире полигон такого типа.",
+      infoTextConfig: {
+        position: { left: 455, top: 850 },
+        size: { width: 1100, height: 300 },
+        fontSize: 44,
+        lineHeight: 1.0,
+      },
+      options: ["В Копейске", "В Рублёвске", "В Гривенской", "В Денежкине"],
+      correctAnswerIndex: 0,
+    },
+  ],
+};
+
+export default quizData;
+
+
+// ./src\styles\App.css
+/* src/styles/App.css */
+
+/* Подключаем шрифт TT Octosquares */
+@font-face {
+  font-family: 'TT Octosquares';
+  src: url('../assets/fonts/TT-Octosquares-Regular.woff2') format('woff2'),
+       url('../assets/fonts/TT-Octosquares-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Сброс */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Тело документа.
+   Центрируем .app-container (чтобы она оказывалась по центру),
+   и задаём глобальный фон на всё окно */
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+
+  /* Выставляем flex-контейнер, чтобы центрировать app-container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: 'TT Octosquares', sans-serif;
+  color: #fff;
+
+  /* Глобальный фон 4K */
+  background: url('../assets/global_background.png') no-repeat center center;
+  background-size: cover;
+}
+
+/* Основной контейнер приложения, 1920×1080 */
+.app-container {
+  width: 1920px;
+  height: 1080px;
+  transform-origin: center center;
+
+  /* Локальный фон приложения */
+  background: url('../assets/background.png') no-repeat center center;
+  background-size: cover;
+}
+
+/* Масштабируем .app-container, 
+   но только если окно МЕНЬШЕ 1920×1080 */
+@media (max-width: 1920px), (max-height: 1080px) {
+  .app-container {
+    transform: scale(var(--scale-factor));
+  }
+}
+
+:root {
+  --scale-factor: 1;
+}
+
+/* Кнопки ответов, класс answer-button,
+   хотя мы теперь используем inline-стили, 
+   этот класс может остаться как общий */
+.answer-button {
+  position: absolute;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 120px;
+  text-align: center;
+  color: #fff;
+  transition: background-image 0.3s ease;
+}
+
+/* Робот */
+.robot {
+  position: absolute;
+  width: 1000px;
+  height: 1080px;
+  overflow: hidden;
+  background: transparent;
+  z-index: 1;
+}
+
+.robot video {
+  object-fit: cover;
+}
+
+/* answer-info */
+.answer-info {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.answer-info img,
+.answer-info video {
+  max-width: 80%;
+  max-height: 80%;
+}
+
+/* Результирующий экран */
+.result-container {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+
+
