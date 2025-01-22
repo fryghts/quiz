@@ -91,7 +91,7 @@ const answerStyles = {
   12: [
     { width: 616, height: 120, fontSize: 36 },
     { width: 616, height: 120, fontSize: 36 },
-    { width: 616, height: 120, fontSize: 36 },
+    { width: 616, height: 120, fontSize: 34 },
     { width: 616, height: 120, fontSize: 34 },
   ],
 

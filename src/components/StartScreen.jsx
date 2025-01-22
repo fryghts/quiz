@@ -37,7 +37,7 @@ function StartScreen({ onStart }) {
           textAlign: 'center',
         }}
       >
-        НАЧАТЬ!
+        СТАРТ
       </button>
     </div>
   );
